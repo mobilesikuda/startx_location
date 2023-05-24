@@ -34,6 +34,8 @@ import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import ru.sikuda.mobile.startx_location.ui.theme.Startx_locationTheme
 import java.util.Date
@@ -62,19 +64,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
 
-            fLocationAvailable = isLocationEnabled(this)
-//            if (fLocationAvailable) {
-//                fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-//                locationCallback = object : LocationCallback() {
-//                    override fun onLocationResult(loc: LocationResult) {
-//                        for (location in loc.locations) {
-//                            showLocation(location)
-//                        }
-//                    }
-//                }
-//            }
+        locationManagerGPS = getSystemService(LOCATION_SERVICE) as LocationManager
+        locationManagerNet = getSystemService(LOCATION_SERVICE) as LocationManager
+
+        fLocationAvailable = isLocationEnabled(this)
+        if (fLocationAvailable) {
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+            locationCallback = object : LocationCallback() {
+                override fun onLocationResult(loc: LocationResult) {
+                    for (location in loc.locations) {
+                        showLocation(location)
+                    }
+                }
+            }
+        }
+
+        setContent {
 
             Startx_locationTheme {
                 // A surface container using the 'background' color from the theme
@@ -82,6 +88,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+//                    var tvLocationGPS: String by rememberSaveable { mutableStateOf(value = "-")}
+//                    var tvLocationNet: String by rememberSaveable { mutableStateOf(value = "-")}
+//                    var tvLocationGoogle: String by rememberSaveable { mutableStateOf(value = "-")}
+
                     MainScreen( tvLocationGPS, tvLocationNet, tvLocationGoogle)
                 }
             }
@@ -155,7 +165,6 @@ class MainActivity : ComponentActivity() {
         locationManagerGPS.removeUpdates(locationListenerGPS)
         locationManagerNet.removeUpdates(locationListenerNet)
         fusedLocationClient.removeLocationUpdates(locationCallback)
-
         super.onPause()
     }
 
@@ -203,12 +212,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showLocation(location: Location?) {
-        if (location?.provider == LocationManager.GPS_PROVIDER) tvLocationGPS = formatLocation( location )
-
-        else if (location?.provider == LocationManager.NETWORK_PROVIDER )
-            tvLocationNet = formatLocation(location)
-        else
-            tvLocationGoogle = formatLocation(location)
+        when (location?.provider) {
+            LocationManager.GPS_PROVIDER -> tvLocationGPS = formatLocation( location )
+            LocationManager.NETWORK_PROVIDER -> tvLocationNet = formatLocation(location)
+            else -> tvLocationGoogle = formatLocation(location)
+        }
     }
 
     private fun formatLocation(location: Location?): String {
@@ -220,8 +228,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkEnabled() {
-        //isCheckedGPS = locationManagerGPS.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        //isCheckedNet = locationManagerNet.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        isCheckedGPS = locationManagerGPS.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        isCheckedNet = locationManagerNet.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 }
 
@@ -232,9 +240,10 @@ fun MainScreen(
     tvLocationGoogle: String = "-",
 ) {
 
-    //val tvLocationGPS: String by rememberSaveable { mutableStateOf(value = "-")}
-    //val tvLocationNet: String by rememberSaveable { mutableStateOf(value = "-")}
-    //val tvLocationGoogle: String by rememberSaveable { mutableStateOf(value = "-")}
+//    var tvLocationGPS: String by rememberSaveable { mutableStateOf(value = "-")}
+//    var tvLocationNet1: String by rememberSaveable { mutableStateOf(value = "-")}
+//    var tvLocationGoogle1: String by rememberSaveable { mutableStateOf(value = "-")}
+
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -247,7 +256,7 @@ fun MainScreen(
                 Text(stringResource(R.string.name_gps))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = tvLocationGPS,
+                    text = tvLocationGPS ,
                     textAlign = TextAlign.Center
                 )
             }
