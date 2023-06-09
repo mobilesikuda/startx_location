@@ -10,8 +10,10 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -40,7 +44,7 @@ import com.google.android.gms.location.Priority
 import ru.sikuda.mobile.startx_location.ui.theme.Startx_locationTheme
 import java.util.Date
 
-@Suppress("DEPRECATION")
+//@Suppress("DEPRECATION")
 class MainActivity : ComponentActivity() {
 
     //Clear location
@@ -49,9 +53,10 @@ class MainActivity : ComponentActivity() {
 
     var isCheckedGPS = false
     var isCheckedNet = false
-    private var tvLocationGPS: String = "-"
-    private var tvLocationNet: String = "-"
-    private var tvLocationGoogle: String = "-"
+
+    private var tvLocationGPS = MutableLiveData("-")
+    private var tvLocationNet = MutableLiveData("-")
+    private var tvLocationGoogle = MutableLiveData("-")
 
     //And Google services
     private var fLocationAvailable: Boolean = false
@@ -61,6 +66,19 @@ class MainActivity : ComponentActivity() {
     //permission for location
     private val PERMISSION_REQUEST1 = 1001
     private val PERMISSION_REQUEST2 = 1002
+
+    //Nothing doing in success
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                checkEnabled()
+                Log.i("Permission: ", "Granted")
+            } else {
+                Log.i("Permission: ", "Denied")
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,20 +101,26 @@ class MainActivity : ComponentActivity() {
         setContent {
 
             Startx_locationTheme {
+
+                val stateGPS = tvLocationGPS.observeAsState()
+                val stateNet = tvLocationNet.observeAsState()
+                val stateGoogle = tvLocationGoogle.observeAsState()
+
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-//                    var tvLocationGPS: String by rememberSaveable { mutableStateOf(value = "-")}
-//                    var tvLocationNet: String by rememberSaveable { mutableStateOf(value = "-")}
-//                    var tvLocationGoogle: String by rememberSaveable { mutableStateOf(value = "-")}
-
-                    MainScreen( tvLocationGPS, tvLocationNet, tvLocationGoogle)
+                    MainScreen(
+                        stateGPS.value.toString(),
+                        stateNet.value.toString(),
+                        stateGoogle.value.toString()
+                    )
+                }
                 }
             }
         }
-    }
+
 
     fun isLocationEnabled(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -115,6 +139,46 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+
+//        when {
+//            ContextCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.ACCESS_FINE_LOCATION
+//            ) == PackageManager.PERMISSION_GRANTED -> {
+//                // You can use the API that requires the permission.
+//                if (isCheckedGPS)
+//                    locationManagerGPS.requestLocationUpdates(
+//                        LocationManager.GPS_PROVIDER,
+//                        10000,
+//                        10f,
+//                        locationListenerGPS
+//                    )
+//            }
+//
+//            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+//                //Toast.makeText(this, "", Toast.LENGTH_SHORT).show()
+//                val builder = AlertDialog.Builder(this)
+//                builder.setMessage("Для программы нужно разрешение на определение местоположения?")
+//                    .setPositiveButton("ОК",
+//                        { dialog, id ->
+//                            requestPermissionLauncher.launch(
+//                                Manifest.permission.ACCESS_FINE_LOCATION
+//                            )
+//                        })
+//                builder.create()
+//            }
+//
+//            else -> {
+//                // You can directly ask for the permission.
+//                // The registered ActivityResultCallback gets the result of this request.
+//                requestPermissionLauncher.launch(
+//                    Manifest.permission.ACCESS_FINE_LOCATION
+//                )
+//            }
+//        }
+
+
+        //GPS location
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -127,11 +191,18 @@ class MainActivity : ComponentActivity() {
                 PERMISSION_REQUEST1
             )
 
-        if( ActivityCompat.checkSelfPermission(
+        //Net Location
+        if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED)
-            if(isCheckedNet)
-                locationManagerNet.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 10f, locationListenerNet)
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+            if (isCheckedNet)
+                locationManagerNet.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    10000,
+                    10f,
+                    locationListenerNet
+                )
             else ActivityCompat.requestPermissions(
                 this,
                 arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
@@ -205,7 +276,8 @@ class MainActivity : ComponentActivity() {
             if (ActivityCompat.checkSelfPermission(
                     this@MainActivity,
                     Manifest.permission.ACCESS_COARSE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED ) {
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
                 showLocation(locationManagerNet.getLastKnownLocation(provider))
             }
         }
@@ -213,9 +285,9 @@ class MainActivity : ComponentActivity() {
 
     private fun showLocation(location: Location?) {
         when (location?.provider) {
-            LocationManager.GPS_PROVIDER -> tvLocationGPS = formatLocation( location )
-            LocationManager.NETWORK_PROVIDER -> tvLocationNet = formatLocation(location)
-            else -> tvLocationGoogle = formatLocation(location)
+            LocationManager.GPS_PROVIDER -> tvLocationGPS.value = formatLocation(location)
+            LocationManager.NETWORK_PROVIDER -> tvLocationNet.value = formatLocation(location)
+            else -> tvLocationGoogle.value = formatLocation(location)
         }
     }
 
@@ -237,13 +309,8 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(
     tvLocationGPS: String = "-",
     tvLocationNet: String = "-",
-    tvLocationGoogle: String = "-",
+    tvLocationGoogle: String = "-"
 ) {
-
-//    var tvLocationGPS: String by rememberSaveable { mutableStateOf(value = "-")}
-//    var tvLocationNet1: String by rememberSaveable { mutableStateOf(value = "-")}
-//    var tvLocationGoogle1: String by rememberSaveable { mutableStateOf(value = "-")}
-
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -289,6 +356,6 @@ fun MainScreen(
 @Composable
 fun GreetingPreview() {
     Startx_locationTheme {
-        MainScreen("","","")
+        MainScreen("", "", "")
     }
 }
