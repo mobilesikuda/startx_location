@@ -68,11 +68,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
 
-    //permission for location
-    //private val PERMISSION_REQUEST1 = 1001
-    //private val PERMISSION_REQUEST2 = 1002
-
-    //Nothing doing in success
+     //Nothing doing in success
     private val requestPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
