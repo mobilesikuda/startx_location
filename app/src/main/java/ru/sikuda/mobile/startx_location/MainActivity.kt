@@ -49,7 +49,6 @@ import ru.sikuda.mobile.startx_location.ui.theme.Purple40
 import ru.sikuda.mobile.startx_location.ui.theme.Startx_locationTheme
 import java.util.Date
 
-//@Suppress("DEPRECATION")
 class MainActivity : ComponentActivity() {
 
     //Clear location
@@ -179,20 +178,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-
-        //GPS location
-//        if (ActivityCompat.checkSelfPermission(
-//                this,
-//                Manifest.permission.ACCESS_FINE_LOCATION
-//            ) == PackageManager.PERMISSION_GRANTED )
-//            if (isCheckedGPS)
-//                locationManagerGPS.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 10f, locationListenerGPS )
-//            else ActivityCompat.requestPermissions(
-//                this,
-//                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-//                PERMISSION_REQUEST1
-//            )
-
         when {
             ContextCompat.checkSelfPermission(
                 this,
@@ -229,24 +214,6 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-
-        //Net Location
-//        if (ActivityCompat.checkSelfPermission(
-//                this, Manifest.permission.ACCESS_COARSE_LOCATION
-//            ) == PackageManager.PERMISSION_GRANTED
-//        )
-//            if (isCheckedNet)
-//                locationManagerNet.requestLocationUpdates(
-//                    LocationManager.NETWORK_PROVIDER,
-//                    10000,
-//                    10f,
-//                    locationListenerNet
-//                )
-//            else ActivityCompat.requestPermissions(
-//                this,
-//                arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-//                PERMISSION_REQUEST2
-//            )
 
         //Google services
         startfusedUpdates()
