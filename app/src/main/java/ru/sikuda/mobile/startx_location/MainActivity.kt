@@ -24,7 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,6 +48,7 @@ import com.google.android.gms.location.Priority
 import ru.sikuda.mobile.startx_location.ui.theme.Purple40
 import ru.sikuda.mobile.startx_location.ui.theme.Startx_locationTheme
 import java.util.Date
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
@@ -300,6 +301,7 @@ class MainActivity : ComponentActivity() {
     private fun formatLocation(location: Location?): String {
         return if (location == null) "-"
         else String.format(
+            Locale.ROOT,
             "Coordinates: lat = %1$.4f, lon = %2$.4f, time = %3\$tF %3\$tT",
             location.latitude, location.longitude, Date(location.time)
         )
@@ -333,7 +335,7 @@ fun MainScreen(
                     textAlign = TextAlign.Center
                 )
             }
-            Divider()
+            HorizontalDivider()
             Spacer(modifier = Modifier.height(32.dp))
             Row(modifier = Modifier.padding(0.dp)) {
                 Text(stringResource(R.string.name_network))
@@ -343,7 +345,7 @@ fun MainScreen(
                     textAlign = TextAlign.Center
                 )
             }
-            Divider()
+            HorizontalDivider()
             Spacer(modifier = Modifier.height(32.dp))
             Row(modifier = Modifier.padding(0.dp)) {
                 Text(stringResource(R.string.name_goggle_services))
@@ -353,7 +355,7 @@ fun MainScreen(
                     textAlign = TextAlign.Center
                 )
             }
-            Divider()
+            HorizontalDivider()
         }
     }
 }
